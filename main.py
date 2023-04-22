@@ -64,6 +64,7 @@ def display_score(score: int, msg: str = '', x_coord: int = 10, y_coord: int = 1
 # Initializes game variables
 game_over = False
 score = 0
+add_tile_rate = 110
 
 # Main game loop
 while not game_over:
@@ -83,9 +84,20 @@ while not game_over:
                     display_score(score, "Game Over", (SCREEN_WIDTH // 2 - 120), (SCREEN_HEIGHT // 2))
                     pygame.display.flip()  # updates screen
             game_over = not no_missed_hit  # If True, game keeps going, If False, game ends
-           
-    # Add new tile every 120 frames
-    if pygame.time.get_ticks() % 120 == 0:
+
+    if score > 10:
+        add_tile_rate = 100
+    elif score > 20:
+        add_tile_rate = 90
+    elif score > 30:
+        add_tile_rate = 50
+    elif score > 40:
+        add_tile_rate = 20
+    elif score > 50:
+        add_tile_rate = 10
+
+    # Add new tile every 110 frames
+    if pygame.time.get_ticks() % add_tile_rate == 0:
         add_tile()
         
     # Update sprites
