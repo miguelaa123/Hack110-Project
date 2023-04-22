@@ -28,7 +28,12 @@ class Tile(pygame.sprite.Sprite):
         """Function moves tile down at the set speed and removes the tile once it hits the bottom."""
         self.rect.y += self.speed
         if self.rect.y >= SCREEN_HEIGHT:
-            self.kill()
+            screen.fill(RED)  # makes screen red if a tile touches bottom of screen
+            display_score(score, "Game Over", (SCREEN_WIDTH // 2 - 120), (SCREEN_HEIGHT // 2))
+            pygame.display.flip()  # updates screen
+            global game_over
+            game_over = True  # Ends game
+
         
     def check_hit(self, key):
         """Function checks users input and returns True or False depending on whether the tile is in the corresponding column."""
@@ -45,11 +50,20 @@ class Tile(pygame.sprite.Sprite):
 # Create function to add a new tile
 def add_tile():
     color = BLACK  #random.choice([BLACK, RED])
-    tile = Tile(random.randint(0, 2)*TILE_WIDTH, -TILE_HEIGHT, color)
+    tile = Tile(random.randint(0, 2) * TILE_WIDTH, -TILE_HEIGHT, color)
     tile_group.add(tile)
 
+# Create font
+font = pygame.font.Font(None, 36)
 
+# Create function to display score
+def display_score(score: int, msg: str = '', x_coord: int = 10, y_coord: int = 10):
+    score_text = font.render(f"{msg} Score: {score}", True, BLACK)
+    screen.blit(score_text, (x_coord, y_coord))
+
+# Initializes game variables
 game_over = False
+score = 0
 
 # Main game loop
 while not game_over:
@@ -58,22 +72,33 @@ while not game_over:
         if event.type == pygame.QUIT:
             game_over = True
         elif event.type == pygame.KEYDOWN:
+            no_missed_hit = False  # Assumes keypress misses a tile
             for tile in tile_group:
                 if tile.check_hit(event.key):
+                    no_missed_hit = True  # If it actually hit something, it will change to True to keep the game going.
                     tile.kill()
-                else:
-                    game_over = True
-    
-    # Add new tile every 80 frames
-    if pygame.time.get_ticks() % 80 == 0:
+                    score += 1
+                elif not no_missed_hit:
+                    screen.fill(RED)  # makes screen red if user inputs wrong button
+                    display_score(score, "Game Over", (SCREEN_WIDTH // 2 - 120), (SCREEN_HEIGHT // 2))
+                    pygame.display.flip()  # updates screen
+            game_over = not no_missed_hit  # If True, game keeps going, If False, game ends
+           
+    # Add new tile every 120 frames
+    if pygame.time.get_ticks() % 120 == 0:
         add_tile()
         
     # Update sprites
     tile_group.update()
+
+    # Checks if update method ended game/loop to end game without error
+    if game_over:
+        break
     
     # Update screen
     screen.fill(WHITE)
     tile_group.draw(screen)
+    display_score(score)
     pygame.display.flip()  # Update the display, is the equivalent of update() with no args
     
     # Set game frame rate
